@@ -1,0 +1,53 @@
+---
+title: "Reading and writing sound files"
+author: "Bob Horton"
+date: "July 14, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Sound I/O
+
+```{r seewave_example}
+library("seewave")
+
+# 100 millisecond sample of a 440 Hz sine wave
+s1 <- sin(2*pi*440*seq(0,1/10,length.out=800))
+oscillo(s1, f=8000)
+
+```
+
+
+### read WAV file
+
+For demonstration purposes, we use this [WAV file](http://www.nch.com.au/acm/8k8bitpcm.wav) from the Wikipedia artcle on the [WAV](https://en.wikipedia.org/wiki/WAV) format. Only uncompressed PCM and IEEE_FLOAT Wave formats supported.
+
+```{r read_wav}
+library("tuneR")
+wave_file <- "eulersDiskTestComMic7.wav"
+s6 <- readWave(wave_file)
+
+s6
+
+s7 <- readWave(wave_file, from = 1, to = 5, units = "seconds")
+
+s7@samp.rate
+s7@bit
+s7@stereo
+
+```
+
+## audio package
+
+```{r audio_package}
+
+
+```
+
+## References
+
+* https://cran.r-project.org/web/packages/seewave/vignettes/seewave_IO.pdf
+

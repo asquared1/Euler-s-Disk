@@ -1,12 +1,14 @@
 ---
 title: "Reading and writing sound files"
-author: "Bob Horton"
+author: "Bob Horton...sure...yeah...totoally..k, it is"
 date: "July 14, 2017"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+require("knitr")
+opts_knit$set(root.dir = "~/eulers disk/")
 ```
 
 ## Sound I/O
@@ -17,35 +19,74 @@ library("seewave")
 # 100 millisecond sample of a 440 Hz sine wave
 s1 <- sin(2*pi*440*seq(0,1/10,length.out=800))
 oscillo(s1, f=8000)
-
+#is this example really necessary?
 ```
 
 
-### read WAV file
+### Read WAV file
 
 For demonstration purposes, we use this [WAV file](http://www.nch.com.au/acm/8k8bitpcm.wav) from the Wikipedia artcle on the [WAV](https://en.wikipedia.org/wiki/WAV) format. Only uncompressed PCM and IEEE_FLOAT Wave formats supported.
 
 ```{r read_wav}
 library("tuneR")
-wave_file <- "8k8bitpcm.wav"
+wave_file <- "eulersDiskTestComMic1.wav"
 s6 <- readWave(wave_file)
 
 s6
 
 s7 <- readWave(wave_file, from = 1, to = 5, units = "seconds")
-
+s7
 s7@samp.rate
 s7@bit
 s7@stereo
 
 ```
+### Plot WAV
 
-## audio package
+```{r plot_wav}
+str(s7)
 
-```{r audio_package}
+hist(s7@left, breaks=30, xlab="Frequency")
+
+plot(s7@left, type='l')
+abline(v=s7@samp.rate * (0:5), col="red")
+
+recording_length <- function(wave_obj){
+  length(wave_obj@left)/wave_obj@samp.rate
+}
+
+recording_length(s6)
+#this just says how to get the recording length?
+### SMOOTHER
+# Filter of length 20 points
+g <- gausswin(50)
+# Filtered signal
+z <- x
+f <- stats::filter(z, g)
+
+#save wave file
+wave_f <- WaveMC(as.vector(f), samp.rate=8000, bit =  16)
+writeWave(wave_f, file="SmoothedeulersDiskTestComMic1.wav")
 
 
+SLICES_DIR <- "slices"
+dir.create(SLICES_DIR, showWarnings = FALSE)
+#showwarnings=false?
+whole_seconds <- floor(recording_length(s6))
+#this is taking the "floor" of the recording?
+for (i in 1:whole_seconds){
+  wav_file_name <- file.path(SLICES_DIR, sprintf("fslice_%02d.wav", i))
+  sound_slice <- readWave(wave_file, 
+                          from = whole_seconds - i, 
+                          to = whole_seconds - i + 1, 
+                          units = "seconds")
+  writeWave(sound_slice, file=wav_file_name)
+}
+#this is tellin how to chop up the files?
+list.files(path=SLICES_DIR, pattern="*.wav")
+#this tells to put the slices in the wav?
 ```
+
 
 ## References
 

@@ -29,7 +29,8 @@ For demonstration purposes, we use this [WAV file](http://www.nch.com.au/acm/8k8
 
 ```{r read_wav}
 library("tuneR")
-wave_file <- "eulersDiskTestComMic1.wav"
+wf_number <- "1"
+wave_file <- paste0("eulersDiskTestComMic", wf_number, ".wav")
 s6 <- readWave(wave_file)
 
 s6
@@ -46,7 +47,7 @@ s7@stereo
 ```{r plot_wav}
 str(s7)
 
-hist(s7@left, breaks=30, xlab="Frequency")
+hist(s7@left, breaks=30, xlab="Amplitude")
 
 plot(s7@left, type='l')
 abline(v=s7@samp.rate * (0:5), col="red")
@@ -57,19 +58,19 @@ recording_length <- function(wave_obj){
 
 recording_length(s6)
 #this just says how to get the recording length?
-### SMOOTHER
-# Filter of length 20 points
-g <- gausswin(50)
-# Filtered signal
-z <- x
-f <- stats::filter(z, g)
+
 
 #save wave file
-wave_f <- WaveMC(as.vector(f), samp.rate=8000, bit =  16)
-writeWave(wave_f, file="SmoothedeulersDiskTestComMic1.wav")
+#wave_f <- WaveMC(as.vector(f), samp.rate=8000, bit =  16)
+#writeWave(wave_f, file="SmoothedeulersDiskTestComMic1.wav")
 
 
-SLICES_DIR <- "slices"
+```
+Read in wave file, one second slice at a time, smooth and save file. 
+```{r}
+# Filter of length 20 points
+g <- gausswin(175)
+SLICES_DIR <- "slices 2"
 dir.create(SLICES_DIR, showWarnings = FALSE)
 #showwarnings=false?
 whole_seconds <- floor(recording_length(s6))
@@ -80,7 +81,15 @@ for (i in 1:whole_seconds){
                           from = whole_seconds - i, 
                           to = whole_seconds - i + 1, 
                           units = "seconds")
-  writeWave(sound_slice, file=wav_file_name)
+  
+  ### SMOOTHER
+
+  # Filtered signal
+  z <- sound_slice@left
+  f <- stats::filter(z, g,  circular=T) 
+  
+  w <- normalize(Wave(left = as.numeric(round(f)),samp.rate=8000, bit =16), unit="16")
+  writeWave(sound_slice, paste0(AUDIO_PATH, "\\slices 2\\wsmooth_", slice_no, ".wav"))
 }
 #this is tellin how to chop up the files?
 list.files(path=SLICES_DIR, pattern="*.wav")
